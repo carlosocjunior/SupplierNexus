@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SupplierNexus - Management Platform</title>
+
+    <!-- Funções comuns entre o hub e os módulos do SupplierNexus (escapeHtml, tradução,
+         etc.) — precisa vir antes do script principal. -->
+    <script src="shared.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            background-color: #e8e8e8;
+            padding: 8px 30px;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        .icone-admin {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-size: 22px;
+            color: #bbb;
+            text-decoration: none;
+            transition: 0.2s;
+            padding: 4px 8px;
+            border-radius: 6px;
+            z-index: 9999;
+        }
+        .icone-admin:hover {
+            color: #555;
+            background: rgba(0,0,0,0.05);
+        }
+        .icone-admin::before {
+            content: '⚙';
+        }
+        .seletor-idioma-btn.ativo {
+            background: #007bff !important;
+            color: white !important;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 5;
+        }
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+        }
+        .header .subtitulo {
+            color: #666;
+            font-size: 14px;
+            margin-top: 2px;
+        }
+        .logo-block {
+            font-family: 'Poppins', Arial, sans-serif;
+            line-height: 1.1;
+            text-align: center;
+            padding: 4px 16px 4px 0;
+            border-right: 2px solid #007bff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .logo-block .logo-top {
+            font-size: 19px;
+            font-weight: 900;
+            color: #007bff;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        .logo-block .logo-bot {
+            font-size: 14px;
+            font-weight: 400;
+            color: #666;
+        }
+        .secao-cards-wrapper {
+            position: relative;
+            margin: 50px 0;
+            display: flow-root;
+        }
+        .secao-cards-horizontais {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            position: relative;
+            z-index: 1;
+            margin-top: 1mm;
+        }
+        .card-horizontal + .card-horizontal {
+            margin-top: 14px;
+        }
+        .card-horizontal {
+            display: flex;
+            align-items: center;
+            border-radius: 22px;
+            padding: 10px 30px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.20);
+            width: 75%;
+            margin: 0;
+            min-height: 90px;
+            gap: 28px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 3px solid rgba(255,255,255,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+        .card-horizontal::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+            pointer-events: none;
+        }
+        .card-horizontal:hover {
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.30);
+        }
+        .card-horizontal-1 {
+            background: linear-gradient(to right, rgba(208,149,77,0.96) 0%, rgba(208,149,77,0.78) 55%, rgba(208,149,77,0.55) 100%);
+            border-color: rgba(255,255,255,0.25);
+        }
+        .card-horizontal-2 {
+            background: linear-gradient(to right, rgba(63,124,173,0.96) 0%, rgba(63,124,173,0.78) 55%, rgba(63,124,173,0.55) 100%);
+            border-color: rgba(255,255,255,0.25);
+        }
+        .card-horizontal-icone {
+            flex: 0 0 18%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+        }
+        .card-horizontal-icone .emoji-icone {
+            font-size: 56px;
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.18));
+        }
+        .card-horizontal-texto {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        .card-horizontal-texto h2 {
+            color: #ffffff;
+            font-size: 26px;
+            font-weight: 700;
+            margin: 0;
+            line-height: 1.2;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.10);
+        }
+        .card-horizontal-texto p {
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.5;
+            margin: 0;
+            opacity: 0.95;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .card-horizontal-texto .acessar-modulo {
+            margin-top: 10px;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            opacity: 0.85;
+            transition: all 0.3s ease;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 4px;
+            width: fit-content;
+        }
+        .card-horizontal-texto .acessar-modulo:hover {
+            opacity: 1;
+            border-bottom-color: rgba(255,255,255,0.9);
+            transform: translateX(4px);
+        }
+        .footer {
+            margin-top: 14px;
+            text-align: center;
+            color: #aaa;
+            font-size: 12px;
+        }
+        @media (max-width: 768px) {
+            .card-horizontal {
+                flex-direction: column;
+                text-align: center;
+                padding: 30px 24px;
+                gap: 20px;
+                width: 100%;
+                min-height: auto;
+            }
+            .card-horizontal-texto h2 { font-size: 26px; }
+            .card-horizontal-texto p { font-size: 15px; }
+            .card-horizontal-texto .acessar-modulo { margin: 0 auto; }
+            .header { flex-wrap: wrap; }
+            .logo-block { border-right: none; padding-right: 0; }
+            #areaUsuarioMgf { top: 56px; right: 10px; }
+            #seletorIdiomaMgf { top: 100px; right: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="admin.html" class="icone-admin" title="Administração" id="iconeAdmin"></a>
+        <div id="seletorIdiomaMgf" style="position:fixed;top:60px;right:20px;z-index:9999;display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+            <button class="seletor-idioma-btn" data-lang="pt" onclick="mudarIdioma('pt')" style="border:none;background:#f1f3f5;padding:6px 10px;border-radius:14px;font-size:12px;font-weight:bold;cursor:pointer;">PT</button>
+            <button class="seletor-idioma-btn" data-lang="en" onclick="mudarIdioma('en')" style="border:none;background:#f1f3f5;padding:6px 10px;border-radius:14px;font-size:12px;font-weight:bold;cursor:pointer;">EN</button>
+            <button class="seletor-idioma-btn" data-lang="es" onclick="mudarIdioma('es')" style="border:none;background:#f1f3f5;padding:6px 10px;border-radius:14px;font-size:12px;font-weight:bold;cursor:pointer;">ES</button>
+        </div>
+        <div id="areaUsuarioMgf" style="position:fixed;top:16px;right:60px;z-index:9999;"></div>
+
+        <div class="header">
+            <div class="logo-block">
+                <div class="logo-top">SupplierNexus</div>
+                <div class="logo-bot">Synvora Labs</div>
+            </div>
+            <div>
+                <h1>SupplierNexus</h1>
+                <div class="subtitulo" data-i18n="subtitulo">Gestão de Fornecedores</div>
+            </div>
+        </div>
+        <div class="secao-cards-wrapper">
+            <div class="secao-cards-horizontais">
+
+            <!-- CARD 1 - Fornecedores -->
+            <div class="card-horizontal card-horizontal-1">
+                <div class="card-horizontal-icone"><span class="emoji-icone">📋</span></div>
+                <div class="card-horizontal-texto">
+                    <h2>Fornecedores</h2>
+                    <p data-i18n="fornecedoresDesc">Cadastro e acompanhamento de fornecedores, com status de auditoria e planos de ação.</p>
+                    <a href="https://carlosocjunior.github.io/Fornecedores/" target="_blank" class="acessar-modulo" data-i18n="acessarModulo">Acessar o módulo →</a>
+                </div>
+            </div>
+
+            <!-- CARD 2 - Avaliação -->
+            <div class="card-horizontal card-horizontal-2">
+                <div class="card-horizontal-icone"><span class="emoji-icone">✅</span></div>
+                <div class="card-horizontal-texto">
+                    <h2>Avaliação</h2>
+                    <p data-i18n="avaliacaoDesc">Questionário de avaliação de fornecedores, com pontuação automática e resultado final.</p>
+                    <a href="https://carlosocjunior.github.io/Avaliacao/" target="_blank" class="acessar-modulo" data-i18n="acessarModulo">Acessar o módulo →</a>
+                </div>
+            </div>
+
+            </div>
+        </div>
+
+        <div class="footer" data-i18n="footer">SupplierNexus - Gestão de Fornecedores | Synvora Labs</div>
+    </div>
+<script>
+// ==========================================
+// CORE - SupplierNexus Authentication System (API)
+// ==========================================
+const API_URL = 'https://mgf-plus-api.flowsuite-plus.workers.dev';
+
+let idiomaAtual = localStorage.getItem('sn_idioma') || 'pt';
+
+const I18N = {
+    pt: {
+        subtitulo: 'Gestão de Fornecedores',
+        footer: 'SupplierNexus - Gestão de Fornecedores | Synvora Labs',
+        fornecedoresDesc: 'Cadastro e acompanhamento de fornecedores, com status de auditoria e planos de ação.',
+        avaliacaoDesc: 'Questionário de avaliação de fornecedores, com pontuação automática e resultado final.',
+        acessarModulo: 'Acessar o módulo →',
+        loginBtn: 'Login',
+        verComoPlaceholder: 'Ver como...',
+        todasEmpresasOpcao: '🌐 Todas as empresas',
+        sairBtn: 'Sair',
+        loginTitulo: 'Entre com seu usuário e senha',
+        acessoModuloSolicitado: 'Acesso ao módulo solicitado',
+        usuarioLabel: 'Usuário',
+        usuarioPlaceholder: 'Digite seu usuário',
+        senhaLabel: 'Senha',
+        senhaPlaceholder: 'Digite sua senha',
+        entrarBtn: 'Entrar',
+        cancelarBtn: 'Cancelar',
+        preencherCampos: 'Preencha usuário e senha!',
+        semPermissaoModulo: 'Você não tem permissão para acessar o módulo "{modulo}".',
+        semPermissaoModuloGenerico: 'Você não tem permissão para acessar este módulo.',
+        facaLoginModulo: 'Faça login na página inicial para acessar este módulo.',
+        sessaoExpirada: 'Sua sessão expirou por inatividade. Faça login novamente.',
+        logoutSucesso: 'Logout realizado com sucesso!',
+        credenciais_invalidas: 'Usuário ou senha inválidos',
+        conta_bloqueada_temporariamente: 'Muitas tentativas erradas. Sua conta foi temporariamente bloqueada — tente novamente em alguns minutos.',
+        sessao_encerrada: 'Sua sessão foi encerrada (login feito em outro lugar, ou logout). Faça login novamente.',
+        erro_interno: 'Erro interno no servidor. Tente novamente em instantes.',
+        token_nao_fornecido: 'Token não fornecido',
+        usuario_nao_encontrado: 'Usuário não encontrado',
+        token_invalido: 'Token inválido',
+        acesso_negado_admin: 'Acesso negado - apenas admin',
+        dados_incompletos: 'Dados incompletos',
+        usuario_ja_existe: 'Usuário já existe',
+        acao_invalida: 'Ação inválida',
+    },
+    en: {
+        subtitulo: 'Supplier Management',
+        footer: 'SupplierNexus - Supplier Management | Synvora Labs',
+        fornecedoresDesc: 'Supplier registration and tracking, with audit status and action plans.',
+        avaliacaoDesc: 'Supplier evaluation questionnaire, with automatic scoring and final result.',
+        acessarModulo: 'Open module →',
+        loginBtn: 'Login',
+        verComoPlaceholder: 'View as...',
+        todasEmpresasOpcao: '🌐 All companies',
+        sairBtn: 'Logout',
+        loginTitulo: 'Sign in with your username and password',
+        acessoModuloSolicitado: 'Access to requested module',
+        usuarioLabel: 'Username',
+        usuarioPlaceholder: 'Enter your username',
+        senhaLabel: 'Password',
+        senhaPlaceholder: 'Enter your password',
+        entrarBtn: 'Sign in',
+        cancelarBtn: 'Cancel',
+        preencherCampos: 'Fill in username and password!',
+        semPermissaoModulo: 'You do not have permission to access the "{modulo}" module.',
+        semPermissaoModuloGenerico: 'You do not have permission to access this module.',
+        facaLoginModulo: 'Sign in on the home page to access this module.',
+        sessaoExpirada: 'Your session expired due to inactivity. Please sign in again.',
+        logoutSucesso: 'Logout successful!',
+        credenciais_invalidas: 'Invalid username or password',
+        conta_bloqueada_temporariamente: 'Too many failed attempts. Your account has been temporarily locked — try again in a few minutes.',
+        sessao_encerrada: 'Your session was closed (signed in elsewhere, or logged out). Please sign in again.',
+        erro_interno: 'Internal server error. Please try again shortly.',
+        token_nao_fornecido: 'Token not provided',
+        usuario_nao_encontrado: 'User not found',
+        token_invalido: 'Invalid token',
+        acesso_negado_admin: 'Access denied - admin only',
+        dados_incompletos: 'Incomplete data',
+        usuario_ja_existe: 'User already exists',
+        acao_invalida: 'Invalid action',
+    },
+    es: {
+        subtitulo: 'Gestión de Proveedores',
+        footer: 'SupplierNexus - Gestión de Proveedores | Synvora Labs',
+        fornecedoresDesc: 'Registro y seguimiento de proveedores, con estado de auditoría y planes de acción.',
+        avaliacaoDesc: 'Cuestionario de evaluación de proveedores, con puntuación automática y resultado final.',
+        acessarModulo: 'Acceder al módulo →',
+        loginBtn: 'Iniciar sesión',
+        verComoPlaceholder: 'Ver como...',
+        todasEmpresasOpcao: '🌐 Todas las empresas',
+        sairBtn: 'Salir',
+        loginTitulo: 'Ingrese su usuario y contraseña',
+        acessoModuloSolicitado: 'Acceso al módulo solicitado',
+        usuarioLabel: 'Usuario',
+        usuarioPlaceholder: 'Ingrese su usuario',
+        senhaLabel: 'Contraseña',
+        senhaPlaceholder: 'Ingrese su contraseña',
+        entrarBtn: 'Entrar',
+        cancelarBtn: 'Cancelar',
+        preencherCampos: '¡Complete usuario y contraseña!',
+        semPermissaoModulo: 'No tiene permiso para acceder al módulo "{modulo}".',
+        semPermissaoModuloGenerico: 'No tiene permiso para acceder a este módulo.',
+        facaLoginModulo: 'Inicie sesión en la página principal para acceder a este módulo.',
+        sessaoExpirada: 'Su sesión expiró por inactividad. Inicie sesión nuevamente.',
+        logoutSucesso: '¡Sesión cerrada con éxito!',
+        credenciais_invalidas: 'Usuario o contraseña inválidos',
+        conta_bloqueada_temporariamente: 'Demasiados intentos fallidos. Su cuenta ha sido bloqueada temporalmente — intente de nuevo en unos minutos.',
+        sessao_encerrada: 'Su sesión fue cerrada (inició sesión en otro lugar, o cerró sesión). Inicie sesión nuevamente.',
+        erro_interno: 'Error interno del servidor. Inténtelo de nuevo en unos instantes.',
+        token_nao_fornecido: 'Token no proporcionado',
+        usuario_nao_encontrado: 'Usuario no encontrado',
+        token_invalido: 'Token inválido',
+        acesso_negado_admin: 'Acceso denegado - solo admin',
+        dados_incompletos: 'Datos incompletos',
+        usuario_ja_existe: 'El usuario ya existe',
+        acao_invalida: 'Acción inválida',
+    }
+};
+
+// t(), tf(), escapeHtml() e aplicarIdioma() vêm do shared.js
+
+function mudarIdioma(lang) {
+    idiomaAtual = lang;
+    localStorage.setItem('sn_idioma', lang);
+    aplicarIdioma();
+    atualizarBarraUsuario();
+}
+
+// ===== FUNÇÕES DE COMUNICAÇÃO COM API =====
+async function chamarAPI(acao, dados = {}) {
+    const token = sessionStorage.getItem('sn_token');
+    const payload = { acao, ...dados };
+    if (token) payload.token = token;
+
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+        });
+        const text = await response.text();
+        return JSON.parse(text);
+    } catch (error) {
+        console.error('Erro na API:', error);
+        return { erro: 'erro_interno' };
+    }
+}
+
+let sessaoAtual = null;
+
+const TEMPO_LIMITE_INATIVIDADE_MIN = 15;
+const TEMPO_LIMITE_INATIVIDADE_MS = TEMPO_LIMITE_INATIVIDADE_MIN * 60 * 1000;
+let timerInatividade = null;
+
+function resetarTimerInatividade() {
+    if (timerInatividade) clearTimeout(timerInatividade);
+    if (sessaoAtual) {
+        timerInatividade = setTimeout(fazerLogoutPorInatividade, TEMPO_LIMITE_INATIVIDADE_MS);
+    }
+}
+
+async function fazerLogoutPorInatividade() {
+    if (!sessaoAtual) return;
+    const token = sessionStorage.getItem('sn_token');
+    sessaoAtual = null;
+    sessionStorage.removeItem('sn_sessao');
+    sessionStorage.removeItem('sn_token');
+
+    if (token) {
+        try {
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ acao: 'logout', token })
+            });
+        } catch (e) { /* sessão local já foi limpa */ }
+    }
+
+    alert(t('sessaoExpirada'));
+    location.reload();
+}
+
+['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click'].forEach(evento => {
+    document.addEventListener(evento, resetarTimerInatividade, { passive: true });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const sessaoSalva = sessionStorage.getItem('sn_sessao');
+    const tokenSalvo = sessionStorage.getItem('sn_token');
+
+    if (sessaoSalva && tokenSalvo) {
+        try {
+            sessaoAtual = JSON.parse(sessaoSalva);
+            verificarTokenValido(tokenSalvo);
+        } catch (e) {
+            sessaoAtual = null;
+            sessionStorage.removeItem('sn_token');
+            sessionStorage.removeItem('sn_sessao');
+        }
+    }
+    resetarTimerInatividade();
+    aplicarProtecaoCardsHorizontais();
+    aplicarIdioma();
+    atualizarBarraUsuario();
+});
+
+async function verificarTokenValido(token) {
+    const resultado = await chamarAPI('verificar', { token });
+    if (!resultado.valido) {
+        sessionStorage.removeItem('sn_token');
+        sessionStorage.removeItem('sn_sessao');
+        sessaoAtual = null;
+    } else {
+        sessaoAtual = {
+            id: resultado.usuario.id,
+            nome: resultado.usuario.nome,
+            modulos: resultado.usuario.modulos,
+            permissao: resultado.usuario.permissao
+        };
+        sessionStorage.setItem('sn_sessao', JSON.stringify(sessaoAtual));
+    }
+    atualizarBarraUsuario();
+}
+
+async function fazerLogin(usuario, senha) {
+    const resultado = await chamarAPI('login', { nome: usuario, senha });
+
+    if (!resultado.sucesso) {
+        alert(t(resultado.erro || 'credenciais_invalidas'));
+        return false;
+    }
+
+    sessaoAtual = {
+        id: resultado.usuario.id,
+        nome: resultado.usuario.nome,
+        modulos: resultado.usuario.modulos,
+        permissao: resultado.usuario.permissao
+    };
+
+    sessionStorage.setItem('sn_token', resultado.token);
+    sessionStorage.setItem('sn_sessao', JSON.stringify(sessaoAtual));
+    resetarTimerInatividade();
+    return true;
+}
+
+async function fazerLogout() {
+    const token = sessionStorage.getItem('sn_token');
+    if (timerInatividade) clearTimeout(timerInatividade);
+    sessaoAtual = null;
+    sessionStorage.removeItem('sn_token');
+    sessionStorage.removeItem('sn_sessao');
+
+    if (token) {
+        try {
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ acao: 'logout', token })
+            });
+        } catch (e) { /* sessão local já foi limpa */ }
+    }
+
+    alert(t('logoutSucesso'));
+    location.reload();
+}
+
+function temAcesso(modulo) {
+    if (!sessaoAtual) return false;
+    return sessaoAtual.modulos.includes(modulo);
+}
+
+function getNivelUsuario() {
+    if (!sessaoAtual) return 'leitura';
+    return sessaoAtual.permissao || 'leitura';
+}
+function isAdmin() {
+    const nivel = getNivelUsuario();
+    return nivel === 'admin' || nivel === 'dev' || nivel === 'master';
+}
+function isDev() { return getNivelUsuario() === 'dev'; }
+function podeGerenciarUsuarios() { return isAdmin(); }
+function getUsuarioLogado() { return sessaoAtual; }
+
+const EMPRESA_VIEW_KEY = 'sn_empresa_visualizando';
+
+function getEmpresaVisualizando() {
+    return sessionStorage.getItem(EMPRESA_VIEW_KEY) || 'todas';
+}
+function mudarEmpresaVisualizando(codigo) {
+    sessionStorage.setItem(EMPRESA_VIEW_KEY, codigo || 'todas');
+}
+
+async function popularSeletorEmpresaDev() {
+    const select = document.getElementById('seletorEmpresaDev');
+    if (!select) return;
+    try {
+        const resultado = await chamarAPI('listarEmpresas', {});
+        if (!resultado.empresas) return;
+        const atual = getEmpresaVisualizando();
+        select.innerHTML = `<option value="todas" ${atual === 'todas' ? 'selected' : ''}>${t('todasEmpresasOpcao')}</option>` +
+            resultado.empresas.map(e => `<option value="${e.id}" ${e.id === atual ? 'selected' : ''}>${escapeHtml(e.nome)}</option>`).join('');
+    } catch (e) {
+        console.error('Erro ao carregar empresas:', e);
+    }
+}
+
+async function atualizarBarraUsuario() {
+    const area = document.getElementById('areaUsuarioMgf');
+    if (!area) return;
+
+    if (sessaoAtual) {
+        const ehDev = sessaoAtual.permissao === 'dev' || sessaoAtual.permissao === 'master';
+        const seletorEmpresaHtml = ehDev
+            ? `<select id="seletorEmpresaDev" onchange="mudarEmpresaVisualizando(this.value)" style="border:none;background:transparent;font-size:12px;font-weight:bold;color:#007bff;cursor:pointer;max-width:150px;"></select>`
+            : '';
+
+        area.innerHTML = `
+            <div style="display:flex;align-items:center;gap:10px;background:#f1f3f5;padding:6px 14px;border-radius:20px;font-size:13px;color:#444;font-family:'Poppins',Arial,sans-serif;">
+                <span><strong>${escapeHtml(sessaoAtual.nome)}</strong></span>
+                ${seletorEmpresaHtml}
+                <button onclick="fazerLogout()" style="background:none;border:none;color:#dc3545;font-weight:bold;cursor:pointer;font-size:13px;padding:0;">${t('sairBtn')}</button>
+            </div>
+        `;
+        if (ehDev) await popularSeletorEmpresaDev();
+    } else {
+        area.innerHTML = `
+            <button onclick="mostrarModalLogin('Login', atualizarBarraUsuario)" style="background:#007bff;color:white;border:none;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:bold;cursor:pointer;font-family:'Poppins',Arial,sans-serif;">${t('loginBtn')}</button>
+        `;
+    }
+}
+
+function mostrarModalLogin(moduloSolicitado, callback) {
+    const modalExistente = document.getElementById('modalLoginCore');
+    if (modalExistente) modalExistente.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'modalLoginCore';
+    modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.6); display: flex; align-items: center;
+        justify-content: center; z-index: 9999; font-family: 'Poppins', Arial, sans-serif;
+    `;
+
+    modal.innerHTML = `
+        <div style="background:white;padding:35px;border-radius:12px;max-width:400px;width:90%;box-shadow:0 8px 30px rgba(0,0,0,0.3);">
+            <div style="text-align:center;margin-bottom:20px;">
+                <h2 style="color:#2C3E50;margin:10px 0 5px;">SupplierNexus</h2>
+                ${moduloSolicitado === 'Login' ? `
+                <p style="color:#666;font-size:14px;">${t('loginTitulo')}</p>
+                ` : `
+                <p style="color:#666;font-size:14px;">${t('acessoModuloSolicitado')}</p>
+                <p style="color:#555;font-size:13px;font-weight:bold;">${moduloSolicitado}</p>
+                `}
+            </div>
+            <div style="margin-bottom:15px;">
+                <label style="display:block;font-weight:bold;color:#555;font-size:14px;">${t('usuarioLabel')}</label>
+                <input type="text" id="loginUsuario" placeholder="${t('usuarioPlaceholder')}" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:6px;font-size:14px;margin-top:5px;">
+            </div>
+            <div style="margin-bottom:20px;position:relative;">
+                <label style="display:block;font-weight:bold;color:#555;font-size:14px;">${t('senhaLabel')}</label>
+                <div style="position:relative;">
+                    <input type="password" id="loginSenha" placeholder="${t('senhaPlaceholder')}" style="width:100%;padding:12px;padding-right:45px;border:1px solid #ddd;border-radius:6px;font-size:14px;margin-top:5px;" onkeydown="if(event.key==='Enter') document.getElementById('btnLoginCore').click()">
+                    <span onclick="toggleSenha()" id="iconeOlhoSenha" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;user-select:none;display:flex;align-items:center;color:#888;">${SVG_OLHO_ABERTO}</span>
+                </div>
+            </div>
+            <button id="btnLoginCore" style="width:100%;padding:12px;background:#007bff;color:white;border:none;border-radius:6px;font-size:16px;font-weight:bold;cursor:pointer;transition:0.2s;">${t('entrarBtn')}</button>
+            <button onclick="fecharModalLogin()" style="width:100%;padding:10px;background:transparent;color:#999;border:none;font-size:14px;cursor:pointer;margin-top:10px;">${t('cancelarBtn')}</button>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    setTimeout(() => document.getElementById('loginUsuario').focus(), 100);
+
+    document.getElementById('btnLoginCore').addEventListener('click', async function() {
+        const usuario = document.getElementById('loginUsuario').value.trim();
+        const senha = document.getElementById('loginSenha').value.trim();
+        if (!usuario || !senha) {
+            alert(t('preencherCampos'));
+            return;
+        }
+        const sucesso = await fazerLogin(usuario, senha);
+        if (sucesso) {
+            fecharModalLogin();
+            if (callback) callback();
+        } else {
+            document.getElementById('loginSenha').value = '';
+            document.getElementById('loginSenha').focus();
+        }
+    });
+}
+
+function fecharModalLogin() {
+    const modal = document.getElementById('modalLoginCore');
+    if (modal) modal.remove();
+}
+
+const SVG_OLHO_ABERTO = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+const SVG_OLHO_FECHADO = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.7 18.7 0 0 1 5.06-5.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a18.7 18.7 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
+
+function toggleSenha() {
+    const campo = document.getElementById('loginSenha');
+    const icone = document.getElementById('iconeOlhoSenha');
+    const mostrando = campo.type === 'text';
+    campo.type = mostrando ? 'password' : 'text';
+    if (icone) icone.innerHTML = mostrando ? SVG_OLHO_ABERTO : SVG_OLHO_FECHADO;
+}
+
+// ===== ANEXA O TOKEN NA URL DO MÓDULO =====
+function abrirModuloComToken(href) {
+    const token = sessionStorage.getItem('sn_token');
+    if (!token) return href;
+    const separador = href.includes('?') ? '&' : '?';
+    let url = `${href}${separador}sn_token=${encodeURIComponent(token)}`;
+
+    const empresaVisualizando = getEmpresaVisualizando();
+    if (empresaVisualizando && sessaoAtual && (sessaoAtual.permissao === 'dev' || sessaoAtual.permissao === 'master')) {
+        url += `&sn_empresa=${encodeURIComponent(empresaVisualizando)}`;
+    }
+    return url;
+}
+
+function aplicarProtecaoCardsHorizontais() {
+    const cards = document.querySelectorAll('.card-horizontal');
+
+    cards.forEach(card => {
+        const link = card.querySelector('.acessar-modulo');
+        if (!link) return;
+        const href = link.getAttribute('href');
+        if (!href) return;
+
+        let modulo = '';
+        if (href.includes('Fornecedores')) modulo = 'fornecedores';
+        else if (href.includes('Avaliacao')) modulo = 'avaliacao';
+        else return;
+
+        link.removeAttribute('href');
+        card.style.cursor = 'pointer';
+
+        function irParaModulo() {
+            if (sessaoAtual && temAcesso(modulo)) {
+                window.location.href = abrirModuloComToken(href);
+                return;
+            }
+            if (sessaoAtual && !temAcesso(modulo)) {
+                alert(tf('semPermissaoModulo', { modulo }));
+                return;
+            }
+            const nomeModulo = modulo.charAt(0).toUpperCase() + modulo.slice(1);
+            mostrarModalLogin(nomeModulo, async function() {
+                if (temAcesso(modulo)) {
+                    window.location.href = abrirModuloComToken(href);
+                } else {
+                    alert(tf('semPermissaoModulo', { modulo }));
+                }
+            });
+        }
+
+        card.addEventListener('click', function(e) {
+            if (e.target.closest('.acessar-modulo')) return;
+            irParaModulo();
+        });
+        link.addEventListener('click', function(e) {
+            e.stopPropagation();
+            irParaModulo();
+        });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const icone = document.getElementById('iconeAdmin');
+    if (icone) {
+        icone.addEventListener('click', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            window.location.href = 'admin.html';
+        });
+    }
+});
+
+window.mgf = {
+    login: fazerLogin,
+    logout: fazerLogout,
+    temAcesso,
+    usuario: getUsuarioLogado,
+    getNivel: getNivelUsuario,
+    isAdmin,
+    isDev,
+    podeGerenciarUsuarios,
+    verificarAcesso: function(modulo) {
+        if (sessaoAtual && temAcesso(modulo)) return true;
+        if (sessaoAtual && !temAcesso(modulo)) {
+            alert(t('semPermissaoModuloGenerico'));
+            window.location.href = 'index.html';
+            return false;
+        }
+        alert(t('facaLoginModulo'));
+        window.location.href = 'index.html';
+        return false;
+    }
+};
+
+console.log('SupplierNexus Core carregado!');
+</script>
+</body>
+</html>
