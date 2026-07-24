@@ -262,13 +262,13 @@
                 </div>
             </div>
 
-            <!-- CARD 2 - Avaliação -->
+            <!-- CARD 2 - ScoringEngine (módulo de avaliação) -->
             <div class="card-horizontal card-horizontal-2">
                 <div class="card-horizontal-icone"><span class="emoji-icone">✅</span></div>
                 <div class="card-horizontal-texto">
-                    <h2>Avaliação</h2>
+                    <h2>ScoringEngine</h2>
                     <p data-i18n="avaliacaoDesc">Questionário de avaliação de fornecedores, com pontuação automática e resultado final.</p>
-                    <a href="https://carlosocjunior.github.io/Avaliacao/" target="_blank" class="acessar-modulo" data-i18n="acessarModulo">Acessar o módulo →</a>
+                    <a href="https://carlosocjunior.github.io/ScoringEngine/" target="_blank" class="acessar-modulo" data-i18n="acessarModulo">Acessar o módulo →</a>
                 </div>
             </div>
 
@@ -709,7 +709,7 @@ function aplicarProtecaoCardsHorizontais() {
 
         let modulo = '';
         if (href.includes('SupplierCenter')) modulo = 'fornecedores';
-        else if (href.includes('Avaliacao')) modulo = 'avaliacao';
+        else if (href.includes('ScoringEngine')) modulo = 'avaliacao';
         else return;
 
         link.removeAttribute('href');
