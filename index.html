@@ -252,13 +252,13 @@
         <div class="secao-cards-wrapper">
             <div class="secao-cards-horizontais">
 
-            <!-- CARD 1 - Fornecedores -->
+            <!-- CARD 1 - SupplierCenter (módulo de fornecedores) -->
             <div class="card-horizontal card-horizontal-1">
                 <div class="card-horizontal-icone"><span class="emoji-icone">📋</span></div>
                 <div class="card-horizontal-texto">
-                    <h2>Fornecedores</h2>
+                    <h2>SupplierCenter</h2>
                     <p data-i18n="fornecedoresDesc">Cadastro e acompanhamento de fornecedores, com status de auditoria e planos de ação.</p>
-                    <a href="https://carlosocjunior.github.io/Fornecedores/" target="_blank" class="acessar-modulo" data-i18n="acessarModulo">Acessar o módulo →</a>
+                    <a href="https://carlosocjunior.github.io/SupplierCenter/" target="_blank" class="acessar-modulo" data-i18n="acessarModulo">Acessar o módulo →</a>
                 </div>
             </div>
 
@@ -708,7 +708,7 @@ function aplicarProtecaoCardsHorizontais() {
         if (!href) return;
 
         let modulo = '';
-        if (href.includes('Fornecedores')) modulo = 'fornecedores';
+        if (href.includes('SupplierCenter')) modulo = 'fornecedores';
         else if (href.includes('Avaliacao')) modulo = 'avaliacao';
         else return;
 
